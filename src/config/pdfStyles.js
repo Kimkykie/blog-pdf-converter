@@ -40,8 +40,8 @@ const styles = {
   text: {
     paragraph: {
       fontSize: 10,
-      spacing: 12,    // Increased spacing between paragraphs
-      lineHeight: 1.4 // Added line height for better readability
+      spacing: 12,
+      lineHeight: 1.4
     },
     quote: {
       fontSize: 10,

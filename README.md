@@ -39,10 +39,10 @@ npm start
 ## Roadmap
 - [ ] Customizable headers and footers
 - [ ] Table of contents generation
-- [ ] Earth (Orbit/Moon)
+- [ ] Render lists
 - [ ] Link preservation
 - [ ] Image support
-- [ ] Custom font integration
+- [x] Custom font integration
 - [ ] Chrome Extension support
   - [ ] Right-click to convert
   - [ ] Custom shortcuts

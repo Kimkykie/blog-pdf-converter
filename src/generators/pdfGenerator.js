@@ -8,6 +8,7 @@ import PDFDocument from 'pdfkit';
 import { createWriteStream } from 'fs';
 import styles from '../config/pdfStyles.js';
 import logger from '../utils/logger.js';
+import { loadFonts } from '../utils/fontHelper.js';
 
 /**
  * @class PDFGenerator
@@ -23,6 +24,7 @@ class PDFGenerator {
       margins: styles.page.margin,
       autoFirstPage: true
     });
+    this.fonts = loadFonts(this.doc);
     this.pageNumber = 1;
     this.currentY = styles.page.margin.top + styles.page.padding;
   }
@@ -95,17 +97,22 @@ class PDFGenerator {
 
     switch (element.type) {
       case 'heading':
-        height = styles.heading[element.level].fontSize * 1.5;
+        const headingStyle = styles.heading[element.level];
+        height = this.doc.heightOfString(element.content) + (headingStyle.spacing * 2.5);
         break;
       case 'paragraph':
         height = this.doc.heightOfString(element.content, { width }) + styles.text.paragraph.spacing;
         break;
       case 'quote':
-        height = this.doc.heightOfString(element.content, { width: width - styles.text.quote.indent })
-          + styles.text.quote.spacing;
+        height = this.doc.heightOfString(element.content, {
+          width: width - styles.text.quote.indent * 2
+        }) + (styles.text.quote.spacing * 2);
         break;
       case 'code':
-        height = this.doc.heightOfString(element.content, { width }) + styles.text.code.spacing;
+        const verticalPadding = 15;
+        height = this.doc.heightOfString(element.content, {
+          width: width - 30  // account for horizontal padding
+        }) + (verticalPadding * 2) + (styles.text.code.spacing * 2);
         break;
     }
 
@@ -120,15 +127,16 @@ class PDFGenerator {
   addHeading(element) {
     const style = styles.heading[element.level];
     this.doc
-      .font(styles.fonts.bold)
+      .font(this.fonts.main.bold)
       .fontSize(style.fontSize)
       .fillColor(style.color);
 
     this.doc.text(element.content, {
-      continued: false
+      continued: false,
+      lineGap: style.fontSize * 0.3,
     });
 
-    this.currentY += style.fontSize + style.spacing;
+    this.currentY += this.doc.heightOfString(element.content) + (style.spacing * 2.5);
   }
 
   /**
@@ -144,7 +152,7 @@ class PDFGenerator {
   addParagraph(element) {
     const style = styles.text.paragraph;
     this.doc
-      .font(styles.fonts.regular)
+      .font(this.fonts.main.regular)
       .fontSize(style.fontSize)
       .fillColor(styles.colors.text)
       .text(element.content, {
@@ -165,17 +173,34 @@ class PDFGenerator {
    */
   addQuote(element) {
     const style = styles.text.quote;
+    const quoteWidth = this.doc.page.width - (style.indent * 2) - this.doc.page.margins.left - this.doc.page.margins.right;
+
+    // Quote text with styling
     this.doc
-      .font(styles.fonts.italic)
+      .font(this.fonts.main.italic)
       .fontSize(style.fontSize)
       .fillColor(styles.colors.quote);
 
+    // Add the quote text
+    this.doc.x = this.doc.page.margins.left + style.indent;
+
     this.doc.text(element.content, {
-      indent: style.indent,
-      continued: false
+      width: quoteWidth,
+      align: 'left',
+      lineGap: style.fontSize * 0.5,
     });
 
-    this.currentY += this.doc.heightOfString(element.content) + style.spacing;
+    // Calculate height and update currentY
+    const textHeight = this.doc.heightOfString(element.content, {
+      width: quoteWidth,
+      lineGap: style.fontSize * 0.5
+    });
+
+    this.currentY += textHeight + style.spacing;
+
+    // Reset position
+    this.doc.x = this.doc.page.margins.left;
+    this.doc.moveDown(0);
   }
 
   /**
@@ -186,28 +211,50 @@ class PDFGenerator {
   addCode(element) {
     const style = styles.text.code;
 
-    // Add background rectangle
-    const codeHeight = this.doc.heightOfString(element.content) + 10;
+    // Add code text first without background
     this.doc
-      .rect(
-        this.doc.page.margins.left,
-        this.currentY,
-        this.doc.page.width - this.doc.page.margins.left - this.doc.page.margins.right,
-        codeHeight
-      )
-      .fill('#f6f8fa');
-
-    // Add code text
-    this.doc
-      .font(styles.fonts.code)
+      .font(this.fonts.code.regular)
       .fontSize(style.fontSize)
       .fillColor(styles.colors.code);
 
-    this.doc.text(element.content, {
-      continued: false
+    // Calculate exact dimensions
+    const padding = 8;
+    const codeWidth = this.doc.page.width
+      - this.doc.page.margins.left
+      - this.doc.page.margins.right
+      - (padding * 2);
+
+    // Get exact height of text
+    const textHeight = this.doc.heightOfString(element.content, {
+      width: codeWidth,
+      lineGap: style.fontSize * 0.3
     });
 
-    this.currentY += codeHeight + style.spacing;
+    // Draw background just before text
+    this.doc
+      .save()
+      .roundedRect(
+        this.doc.page.margins.left,
+        this.currentY - 15,
+        this.doc.page.width - this.doc.page.margins.left - this.doc.page.margins.right,
+        textHeight + (padding * 2),
+        4
+      )
+      .fill('#f6f8fa')
+      .restore();
+
+    // Add the text over background
+    this.doc.text(element.content,
+      this.doc.page.margins.left + padding,
+      this.currentY,
+      {
+        width: codeWidth,
+        lineGap: style.fontSize * 0.3
+      }
+    );
+
+    // Update position - only the actual height plus small margin
+    this.currentY += textHeight + style.spacing;
   }
 
   /**

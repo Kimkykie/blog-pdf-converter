@@ -57,25 +57,32 @@ async function promptForUrl() {
 async function convertWebPageToPDF() {
   try {
     const { url } = await promptForUrl();
-    console.log('URL received:', url);
+    progress.start('Starting conversion process...');
 
-    console.log('Starting content extraction...');
+    progress.update('Extracting content from webpage...');
     const { title, elements } = await extractContent(url);
-    console.log('Content extracted, title:', title);
+    progress.update('Generating filename...');
 
     const fileNamer = new FileNamer('./output');
     const fileName = await fileNamer.generateFileName(title);
     const outputPath = join('./output', fileName);
 
-    console.log('Generating PDF...');
+    progress.update('Generating PDF...');
     const pdfGenerator = new PDFGenerator();
     await pdfGenerator.generate(elements, outputPath);
 
-    console.log(`PDF generated successfully: ${fileName}`);
+    progress.succeed(`PDF generated successfully: ${fileName}`);
+
+    logger.info('File details:', {
+      location: outputPath,
+      source: url,
+      title: title || 'No title'
+    });
 
   } catch (error) {
-    console.error('Conversion failed:', error);
-    process.exit(1);
+    progress.fail('Conversion failed');
+    logger.error('Error during conversion:', error);
+    throw error;
   }
 }
 
@@ -89,6 +96,7 @@ async function convertWebPageToPDF() {
     await convertWebPageToPDF();
   } catch (error) {
     console.error('Fatal error:', error);
+    logger.error('Fatal error:', error);
     process.exit(1);
   }
 })();
