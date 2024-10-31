@@ -53,3 +53,4 @@ npm start
 - Node.js
 - Puppeteer (web scraping)
 - PDFKit (PDF generation)
+- Mozilla Readbility (Readability library used for Firefox Reader View)
