@@ -1,56 +1,66 @@
 # blog-pdf-converter
 
-Convert web articles and blog posts to clean, readable PDFs. Built with Node.js, Puppeteer, and PDFKit.
+Convert web articles to clean, readable PDFs. Strip ads and clutter, preserve content structure.
 
-## Purpose
-A minimalist Node.js tool that converts web articles and blog posts to clean, readable PDFs. Strips away distractions and preserves the essential content in a format optimized for reading, sharing, and archiving.
+## Problem
 
-## Why blog-pdf-converter?
-- Archive important articles offline
-- Create clean, readable documents from cluttered web pages
-- Build personal knowledge bases
-- Share content in a consistent format
-- Optimize content for LLM processing (clean text = better analysis)
-- Read comfortably on e-readers
+Web articles are cluttered with ads, popups, and distracting elements. Archiving or sharing clean versions requires manual cleanup or expensive tools.
 
-## Features
-- Clean content extraction from webpages
-- Preserves document structure (headings, paragraphs)
-- Code block formatting with syntax highlighting
-- Quotation block support
-- Configurable margins and spacing
-- Automatic page breaks
-- Custom styling options
+## Solution
 
-## Installation
-```bash
-git clone https://github.com/Kimkykie/blog-pdf-converter.git
-cd blog-pdf-converter
-npm install
-```
+Automated content extraction using Mozilla's Readability algorithm (same engine as Firefox Reader View) combined with custom PDF generation. Input a URL, get a clean PDF optimized for reading.
 
 ## Usage
 
 ```bash
+git clone https://github.com/Kimkykie/blog-pdf-converter.git
+cd blog-pdf-converter
+npm install
 npm start
-# Enter URL when prompted
 ```
 
-## Roadmap
-- [ ] Customizable headers and footers
-- [ ] Table of contents generation
-- [ ] Render lists
-- [ ] Link preservation
-- [ ] Image support
-- [x] Custom font integration
-- [ ] Chrome Extension support
-  - [ ] Right-click to convert
-  - [ ] Custom shortcuts
-  - [ ] Save to preferred location
-  - [ ] Quick share options
+Enter URL when prompted. PDF saves to local directory.
+
+## What it extracts
+
+- Article text and structure
+- Headings and paragraphs  
+- Code blocks with syntax highlighting
+- Quotation blocks
+- Configurable styling and margins
 
 ## Tech Stack
-- Node.js
-- Puppeteer (web scraping)
-- PDFKit (PDF generation)
-- Mozilla Readbility (Readability library used for Firefox Reader View)
+
+- **Puppeteer** - Headless Chrome automation
+- **Mozilla Readability** - Content extraction (Firefox Reader View engine)
+- **PDFKit** - PDF generation with custom formatting
+
+## Use Cases
+
+- Archive articles offline
+- Clean up content for LLM processing
+- Create consistent document formats
+- Remove distractions for focused reading
+
+## Roadmap
+
+- [ ] Image support
+- [ ] Table/list rendering
+- [ ] Chrome extension (right-click conversion)
+- [ ] Bulk URL processing
+- [ ] Custom styling templates
+
+## Contributing
+
+Focus areas:
+- Content extraction accuracy
+- PDF formatting improvements  
+- Performance optimization for large articles
+
+## License
+
+MIT
+
+---
+
+**Note**: This was a learning project for Puppeteer scraping techniques. Production use may require additional error handling and rate limiting.
